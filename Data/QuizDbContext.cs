@@ -14,7 +14,7 @@ namespace QuizWebApp.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Quiz>().HasMany(q => q.Questions);
+            modelBuilder.Entity<CompletedQuiz>().HasMany(q => q.Questions);
             modelBuilder.Entity<Question>().HasMany(q => q.Answers).WithOne(a => a.Question).HasForeignKey(a => a.QuestionId);
             modelBuilder.Entity<Category>().HasMany(c => c.Questions);
         }

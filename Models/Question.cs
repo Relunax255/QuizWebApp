@@ -5,13 +5,13 @@ namespace QuizWebApp.Models
     public class Question
     {
         [Key]
-        public int QuestionID { get; set; }
+        public int QuestionId { get; set; }
         [Required]
-        public string Type { get; set; }
+        public QuizType Type { get; set; }
         [Required]
-        public string Difficulty { get; set; }
+        public QuizDifficulty Difficulty { get; set; }
         [Required]
-        public string Category { get; set; }
+        public Category Category { get; set; }
         [Required]
         public string QuestionText { get; set; }
 
