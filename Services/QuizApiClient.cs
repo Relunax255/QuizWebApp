@@ -17,6 +17,10 @@ namespace QuizWebApp.Services
     {
         static string quizzesUrl = "https://opentdb.com/api.php";
         static string categoriesUrl = "https://opentdb.com/api_category.php";
+        public QuizApiClient(HttpClient hc)
+        {
+            httpClient = hc;
+        }
         public async Task<RootCategories?> GetCategoriesAsync()
         {
             var content = await getContentUsingHttp(categoriesUrl);
@@ -48,7 +52,7 @@ namespace QuizWebApp.Services
             return JsonConvert.DeserializeObject<RootQuiz>(response);
         }
         #region http
-        static HttpClient httpClient = new HttpClient();
+        readonly HttpClient httpClient;
 
         static int maxAttempts = 3;
 

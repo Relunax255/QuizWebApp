@@ -1,0 +1,75 @@
+﻿@page
+@model QuizWebApp.Pages.QuizStartModel
+@{
+    ViewData["Title"] = "Start Quiz";
+}
+
+<div class="container mt-5" style="max-width: 600px;">
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h3 class="mb-4 text-center">Start a New Quiz</h3>
+
+            <form method="post">
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label asp-for="Quiz.Amount" class="form-label"></label>
+                    <input asp-for="Quiz.Amount"
+                           type="number"
+                           class="form-control"
+                           min="1"
+                           max="50"
+                           value="10"/>
+                    <span asp-validation-for="Quiz.Amount" class="text-danger"></span>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-3">
+                    <label class="form-label">Category</label>
+                    <select asp-for="Quiz.CategoryId"
+                            asp-items="Model.Categories"
+                            class="form-select">
+                        <option value="">Any Category</option>
+                    </select>
+                </div>
+
+                <!-- Difficulty -->
+                <div class="mb-3">
+                    <label asp-for="Quiz.Difficulty" class="form-label"></label>
+                    <select asp-for="Quiz.Difficulty"
+                            asp-items="Model.Difficulties"
+                            class="form-select">
+                    </select>
+                    <span asp-validation-for="Quiz.Difficulty" class="text-danger"></span>
+                </div>
+
+                <!-- Type -->
+                <div class="mb-4">
+                    <label asp-for="Quiz.Type" class="form-label"></label>
+                    <select asp-for="Quiz.Type"
+                            asp-items="Model.Types"
+                            class="form-select">
+                    </select>
+                    <span asp-validation-for="Quiz.Type" class="text-danger"></span>
+                </div>
+
+                <!-- Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Start Quiz
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

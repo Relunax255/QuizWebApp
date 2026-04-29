@@ -1,0 +1,55 @@
+﻿@page
+@model QuizWebApp.Pages.QuizGameModel
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- Progress -->
+            <h5 class="mb-3">
+                Question @Model.CurrentNumber / @Model.TotalQuestions
+            </h5>
+
+            <div class="progress mb-4">
+                <div class="progress-bar"
+                     role="progressbar"
+                     style="width:@((Model.CurrentNumber * 100) / Model.TotalQuestions)%">
+                </div>
+            </div>
+
+            <!-- Question -->
+            <h4 class="mb-4">
+                @Model.CurrentQuestion.QuestionText
+            </h4>
+
+            <!-- Answers -->
+            <form method="post" id="quizForm">
+
+                <input type="hidden" name="SelectedAnswerId" id="SelectedAnswerId" />
+
+                <div class="list-group">
+
+                    @foreach (var answer in Model.CurrentQuestion.Answers)
+                    {
+                        <button type="button"
+                                class="list-group-item list-group-item-action"
+                                onclick="selectAnswer(@answer.AnswerId)">
+                            @answer.AnswerText
+                        </button>
+                    }
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectAnswer(id) {
+        document.getElementById("SelectedAnswerId").value = id;
+        document.getElementById("quizForm").submit();
+    }
+</script>

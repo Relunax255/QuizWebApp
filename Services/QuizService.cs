@@ -12,9 +12,11 @@ namespace QuizWebApp.Services
     public class QuizService : IQuizService
     {
         IQuizApiClient apiClient;
-        public QuizService(IQuizApiClient apiClient)
+        IQuizCategoryService categoryService;
+        public QuizService (IQuizApiClient apiClient, IQuizCategoryService categoryService)
         {
             this.apiClient = apiClient;
+            this.categoryService = categoryService;
         }
         public async Task<Quiz> GetQuizAsync(
             short amount,
@@ -35,7 +37,18 @@ namespace QuizWebApp.Services
                 {
                     Type = QuizTypeFromString(item.type),
                     Difficulty = QuizDifficultyFromString(item.difficulty),
-                    // map other fields here
+                    Category = categoryService.GetByName(item.category),
+                    QuestionText = item.question,
+
+                    Answers = item.incorrect_answers
+                        .Append(item.correct_answer)
+                        .Select(a => new Answer
+                        {
+                            AnswerText = a,
+                            IsCorrect = a == item.correct_answer
+                        })
+                        .OrderBy(_ => Guid.NewGuid()) // optional shuffle
+                        .ToList()
                 }).ToList()
             };
 

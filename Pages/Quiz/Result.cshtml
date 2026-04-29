@@ -1,0 +1,58 @@
+﻿@page
+@model QuizWebApp.Pages.ResultModel
+
+<div class="container mt-5">
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+
+            <h2>Quiz Completed 🎉</h2>
+
+            <h4 class="mt-3">
+                Score: @Model.Score / @Model.Total
+            </h4>
+
+            <a asp-page="QuizStart" class="btn btn-primary mt-3">
+                Try Again
+            </a>
+            <a asp-page="../Index" class="btn btn-primary mt-3">
+                Home
+            </a>
+
+        </div>
+    </div>
+
+    @foreach (var item in Model.Results)
+    {
+        <div class="card mb-3 shadow-sm">
+
+            <div class="card-body">
+
+                <h5>
+                    @item.Question.QuestionText
+                </h5>
+
+                <p>
+                    <strong>Your answer:</strong>
+                    @item.SelectedAnswer.AnswerText
+                </p>
+
+                @if (item.IsCorrect)
+                {
+                    <span class="badge bg-success">Correct</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Wrong</span>
+
+                    <p class="mt-2">
+                        <strong>Correct answer:</strong>
+                        @item.CorrectAnswer.AnswerText
+                    </p>
+                }
+
+            </div>
+
+        </div>
+    }
+</div>

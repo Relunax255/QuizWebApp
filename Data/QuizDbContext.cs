@@ -6,7 +6,7 @@ namespace QuizWebApp.Data
     {
         public QuizDbContext(DbContextOptions options) : base(options) { }
 
-        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<CompletedQuiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Category> Categories { get; set; }

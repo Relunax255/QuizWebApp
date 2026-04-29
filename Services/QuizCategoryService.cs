@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using QuizWebApp.Models;
+using System.Xml.Linq;
 
 namespace QuizWebApp.Services
 {
@@ -7,11 +8,12 @@ namespace QuizWebApp.Services
     {
         Task InitializeAsync();
         Category? GetById(int id);
+        Category? GetByName(string name);
         IReadOnlyCollection<Category> GetAll();
     }
     public class QuizCategoryService : IQuizCategoryService
     {
-        private readonly IQuizApiClient apiClient;
+        private IQuizApiClient apiClient;
 
         private Dictionary<int, Category> categories = new();
 
@@ -22,22 +24,30 @@ namespace QuizWebApp.Services
 
         public async Task InitializeAsync()
         {
-            var dtos = await apiClient.GetCategoriesAsync();
-            if (dtos != null)
+            if (categories.Count == 0)
             {
-                List<Category> categories = new List<Category>();
-                foreach (var category in dtos.trivia_categories)
+                var dtos = await apiClient.GetCategoriesAsync();
+                if (dtos != null)
                 {
-                    categories.Add(new Category { Id = category.id, Name = category.name });
+                    categories = dtos.trivia_categories.ToDictionary(
+                    c => c.id,
+                    c => new Category
+                    {
+                        Id = c.id,
+                        Name = c.name
+                    });
+
                 }
             }
         }
 
         public Category? GetById(int id)
         {
-            return categories.TryGetValue(id, out var category)
-                ? category
-                : null;
+            return categories.Values.Where(c => c.Id == id).SingleOrDefault();
+        }
+        public Category? GetByName(string name)
+        {
+            return categories.Values.Where(c => c.Name == name).SingleOrDefault();
         }
 
         public IReadOnlyCollection<Category> GetAll()
