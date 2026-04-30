@@ -1,4 +1,5 @@
 ﻿using QuizWebApp.Models;
+using System.Net;
 
 namespace QuizWebApp.Services
 {
@@ -35,19 +36,19 @@ namespace QuizWebApp.Services
             {
                 Questions = dto.results.Select(item => new Question
                 {
-                    Type = QuizTypeFromString(item.type),
-                    Difficulty = QuizDifficultyFromString(item.difficulty),
-                    Category = categoryService.GetByName(item.category),
-                    QuestionText = item.question,
+                    Type = QuizTypeFromString(WebUtility.HtmlDecode(item.type)),
+                    Difficulty = QuizDifficultyFromString(WebUtility.HtmlDecode(item.difficulty)),
+                    Category = categoryService.GetByName(WebUtility.HtmlDecode(item.category)),
+                    QuestionText = WebUtility.HtmlDecode(item.question),
 
                     Answers = item.incorrect_answers
                         .Append(item.correct_answer)
                         .Select(a => new Answer
                         {
-                            AnswerText = a,
+                            AnswerText = WebUtility.HtmlDecode(a),
                             IsCorrect = a == item.correct_answer
                         })
-                        .OrderBy(_ => Guid.NewGuid()) // optional shuffle
+                        .OrderBy(_ => Guid.NewGuid())
                         .ToList()
                 }).ToList()
             };

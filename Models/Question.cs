@@ -4,6 +4,7 @@ namespace QuizWebApp.Models
 {
     public class Question
     {
+        static int currentQuestionId;
         [Key]
         public int QuestionId { get; set; }
         [Required]
@@ -17,5 +18,12 @@ namespace QuizWebApp.Models
 
         // Navigation Property to related answers
         public List<Answer> Answers { get; set; }
+
+        public Question()
+        {
+            QuestionId = currentQuestionId++;
+            currentQuestionId++;
+
+        }
     }
 }

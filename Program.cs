@@ -21,11 +21,11 @@ builder.Services.AddSession();
 
 var app = builder.Build();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var categoryService = scope.ServiceProvider.GetRequiredService<IQuizCategoryService>();
-//    await categoryService.InitializeAsync();
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var categoryService = scope.ServiceProvider.GetRequiredService<IQuizCategoryService>();
+    await categoryService.InitializeAsync();
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
