@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using QuizWebApp.Models;
 using System.Text.Json;
 
@@ -13,7 +14,14 @@ namespace QuizWebApp.Pages
         public int Score { get; set; }
         public int Total { get; set; }
 
-        public IActionResult OnGet()
+        private QuizDbContext dbContext;
+
+        public ResultModel(QuizDbContext context)
+        {
+            dbContext = context;
+        }
+
+        public async Task<IActionResult> OnGetAsync()
         {
             var quizJson = HttpContext.Session.GetString("CurrentQuiz");
             var resultsJson = HttpContext.Session.GetString("QuizResults");
@@ -42,11 +50,43 @@ namespace QuizWebApp.Pages
                     IsCorrect = r.IsCorrect
                 });
             }
+            var userId = GetOrCreateUserId();
+
+            var completedQuiz = new CompletedQuiz
+            {
+                Date = DateTime.UtcNow,
+                UserId = userId,
+                Questions = Results.Select(r => new CompletedQuestion
+                {
+                    QuestionText = r.Question.QuestionText,
+                    Answers = r.Question.Answers.Select(a => new CompletedAnswer
+                    {
+                        AnswerText = a.AnswerText,
+                        IsCorrect = a.IsCorrect,
+                        IsSelected = a.AnswerId == r.SelectedAnswer.AnswerId
+                    }).ToList()
+                }).ToList()
+            };
+
+            dbContext.CompletedQuizzes.Add(completedQuiz);
+            await dbContext.SaveChangesAsync();
             HttpContext.Session.Remove("CurrentQuiz");
             HttpContext.Session.Remove("CurrentQuestionIndex");
             HttpContext.Session.Remove("QuizResults");
 
             return Page();
+        }
+        private string GetOrCreateUserId()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                userId = Guid.NewGuid().ToString();
+                HttpContext.Session.SetString("UserId", userId);
+            }
+
+            return userId;
         }
     }
 

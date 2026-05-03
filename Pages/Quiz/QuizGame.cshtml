@@ -6,7 +6,6 @@
     <div class="card shadow-sm">
         <div class="card-body">
 
-            <!-- Progress -->
             <h5 class="mb-3">
                 Question @Model.CurrentNumber / @Model.TotalQuestions
             </h5>
@@ -18,12 +17,10 @@
                 </div>
             </div>
 
-            <!-- Question -->
             <h4 class="mb-4">
                 @Model.CurrentQuestion.QuestionText
             </h4>
 
-            <!-- Answers -->
             <form method="post" id="quizForm">
 
                 <input type="hidden" name="SelectedAnswerId" id="SelectedAnswerId" />

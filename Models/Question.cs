@@ -15,8 +15,6 @@ namespace QuizWebApp.Models
         public Category Category { get; set; }
         [Required]
         public string QuestionText { get; set; }
-
-        // Navigation Property to related answers
         public List<Answer> Answers { get; set; }
 
         public Question()

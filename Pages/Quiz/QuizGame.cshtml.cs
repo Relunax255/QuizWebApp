@@ -7,9 +7,7 @@ namespace QuizWebApp.Pages
 {
     public class QuizGameModel : PageModel
     {
-        private const string QuizKey = "CurrentQuiz";
         private const string IndexKey = "CurrentQuestionIndex";
-        private const string ResultsKey = "QuizResults";
         public Models.Quiz Quiz { get; set; }
         public Question CurrentQuestion { get; set; }
 

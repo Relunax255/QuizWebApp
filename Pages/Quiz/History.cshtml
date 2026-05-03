@@ -1,0 +1,75 @@
+﻿@page
+@model QuizWebApp.Pages.QuizHistoryModel
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">My Quiz History</h2>
+
+    @if (!Model.Quizzes.Any())
+    {
+        <div class="alert alert-info">
+            No quizzes found.
+        </div>
+    }
+    else
+    {
+        @foreach (var quiz in Model.Quizzes)
+        {
+            var score = Model.GetScore(quiz);
+            var total = Model.GetTotal(quiz);
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+                        <h5>
+                            Score: @score / @total
+                        </h5>
+
+                        <small class="text-muted">
+                            @quiz.Date.ToLocalTime().ToString("g")
+                        </small>
+                    </div>
+
+                    <hr />
+
+                    <details>
+                        <summary class="mb-3">View Details</summary>
+
+                        @foreach (var q in quiz.Questions)
+                        {
+                            var selected = q.Answers.FirstOrDefault(a => a.IsSelected);
+                            var correct = q.Answers.First(a => a.IsCorrect);
+
+                            <div class="mb-3">
+
+                                <strong>@q.QuestionText</strong>
+
+                                <p>
+                                    Your answer:
+                                    <span class="@(selected?.IsCorrect == true ? "text-success" : "text-danger")">
+                                        @selected?.AnswerText
+                                    </span>
+                                </p>
+
+                                @if (selected?.IsCorrect != true)
+                                {
+                                    <p>
+                                        Correct answer:
+                                        <span class="text-success">
+                                            @correct.AnswerText
+                                        </span>
+                                    </p>
+                                }
+
+                            </div>
+                        }
+
+                    </details>
+
+                </div>
+            </div>
+        }
+    }
+
+</div>

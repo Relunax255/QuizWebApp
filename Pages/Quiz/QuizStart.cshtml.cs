@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using QuizWebApp.Models;
 using QuizWebApp.Services;
 using System.Text.Json;
@@ -27,13 +28,19 @@ namespace QuizWebApp.Pages
 
         public async Task OnGetAsync()
         {
+            if (HttpContext.Session.GetString("UserId") == null)
+            {
+                HttpContext.Session.SetString("UserId", Guid.NewGuid().ToString());
+            }
             await LoadDataAsync();
         }
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
+            {
+                await LoadDataAsync();
                 return Page();
-
+            }
             var category = Quiz.CategoryId.HasValue
                 ? categoryService.GetById(Quiz.CategoryId.Value)
                 : null;
@@ -47,7 +54,7 @@ namespace QuizWebApp.Pages
 
             HttpContext.Session.SetString(
                 "CurrentQuiz",
-                JsonSerializer.Serialize(quiz)
+                JsonConvert.SerializeObject(quiz)
             );
 
             HttpContext.Session.SetInt32("CurrentQuestionIndex", 0);
