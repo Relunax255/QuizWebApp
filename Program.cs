@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using QuizWebApp.Services;
-using Pomelo.EntityFrameworkCore.MySql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +13,14 @@ builder.Services.AddSingleton<IQuizCategoryService, QuizCategoryService>();
 
 builder.Services.AddScoped<IQuizService, QuizService>();
 
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "server=localhost;port=3306;database=quizapp;uid=root;pwd=;";
 
-builder.Services.AddDbContext<QuizDbContext>(options => options.UseMySql(connectionString, serverVersion: ServerVersion.AutoDetect(connectionString)));
+builder.Services.AddDbContext<QuizDbContext>(options => options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 

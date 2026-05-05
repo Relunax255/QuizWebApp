@@ -1,56 +1,47 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using QuizWebApp.Helpers;
 using QuizWebApp.Models;
-using System.Text.Json;
 
 namespace QuizWebApp.Pages
 {
     public class ResultModel : PageModel
     {
-        public Models.Quiz Quiz { get; set; }
-        public List<QuestionResultView> Results { get; set; } = new();
+        private readonly QuizDbContext db;
+        public ResultModel(QuizDbContext db) => this.db = db;
 
+        public List<QuestionResultView> Results { get; set; } = new();
         public int Score { get; set; }
         public int Total { get; set; }
 
-        private QuizDbContext dbContext;
-
-        public ResultModel(QuizDbContext context)
-        {
-            dbContext = context;
-        }
-
         public async Task<IActionResult> OnGetAsync()
         {
-            var quizJson = HttpContext.Session.GetString("CurrentQuiz");
-            var resultsJson = HttpContext.Session.GetString("QuizResults");
+            var userId = HttpContext.GetOrCreateUserId();
+            var session = await db.QuizSessions.FirstOrDefaultAsync(s => s.UserId == userId);
+            if (session == null) return RedirectToPage("QuizStart");
 
-            if (quizJson == null || resultsJson == null)
-                return RedirectToPage("Index");
+            var quizObj = JsonConvert.DeserializeObject<Models.Quiz>(session.QuizJson);
+            var resultsList = JsonConvert.DeserializeObject<List<QuestionResult>>(session.ResultsJson);
 
-            Quiz = JsonSerializer.Deserialize<Models.Quiz>(quizJson);
-            var results = JsonSerializer.Deserialize<List<QuestionResult>>(resultsJson);
+            Total = quizObj.Questions.Count;
+            Score = resultsList.Count(r => r.IsCorrect);
 
-            Total = Quiz.Questions.Count;
-            Score = results.Count(r => r.IsCorrect);
-
-            foreach (var r in results)
+            foreach (var r in resultsList)
             {
-                var question = Quiz.Questions.First(q => q.QuestionId == r.QuestionId);
-
-                var selected = question.Answers.First(a => a.AnswerId == r.SelectedAnswerId);
-                var correct = question.Answers.First(a => a.IsCorrect);
+                var q = quizObj.Questions.First(x => x.QuestionId == r.QuestionId);
+                var selected = q.Answers.First(a => a.AnswerId == r.SelectedAnswerId);
+                var correct = q.Answers.First(a => a.IsCorrect);
 
                 Results.Add(new QuestionResultView
                 {
-                    Question = question,
+                    Question = q,
                     SelectedAnswer = selected,
                     CorrectAnswer = correct,
                     IsCorrect = r.IsCorrect
                 });
             }
-            var userId = GetOrCreateUserId();
 
             var completedQuiz = new CompletedQuiz
             {
@@ -68,28 +59,13 @@ namespace QuizWebApp.Pages
                 }).ToList()
             };
 
-            dbContext.CompletedQuizzes.Add(completedQuiz);
-            await dbContext.SaveChangesAsync();
-            HttpContext.Session.Remove("CurrentQuiz");
-            HttpContext.Session.Remove("CurrentQuestionIndex");
-            HttpContext.Session.Remove("QuizResults");
+            db.CompletedQuizzes.Add(completedQuiz);
+            db.QuizSessions.Remove(session);
+            await db.SaveChangesAsync();
 
             return Page();
         }
-        private string GetOrCreateUserId()
-        {
-            var userId = HttpContext.Session.GetString("UserId");
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                userId = Guid.NewGuid().ToString();
-                HttpContext.Session.SetString("UserId", userId);
-            }
-
-            return userId;
-        }
     }
-
     public class QuestionResultView
     {
         public Question Question { get; set; }

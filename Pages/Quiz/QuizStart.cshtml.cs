@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using QuizWebApp.Models;
 using QuizWebApp.Services;
-using System.Text.Json;
+using QuizWebApp.Helpers;
 
 namespace QuizWebApp.Pages
 {
@@ -12,11 +13,13 @@ namespace QuizWebApp.Pages
     {
         private readonly IQuizService quizService;
         private readonly IQuizCategoryService categoryService;
+        private readonly QuizDbContext db;
 
-        public QuizStartModel(IQuizService quizService, IQuizCategoryService categoryService)
+        public QuizStartModel(IQuizService quizService, IQuizCategoryService categoryService, QuizDbContext db)
         {
             this.quizService = quizService;
             this.categoryService = categoryService;
+            this.db = db;
         }
 
         [BindProperty]
@@ -28,12 +31,9 @@ namespace QuizWebApp.Pages
 
         public async Task OnGetAsync()
         {
-            if (HttpContext.Session.GetString("UserId") == null)
-            {
-                HttpContext.Session.SetString("UserId", Guid.NewGuid().ToString());
-            }
             await LoadDataAsync();
         }
+
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -41,23 +41,29 @@ namespace QuizWebApp.Pages
                 await LoadDataAsync();
                 return Page();
             }
-            var category = Quiz.CategoryId.HasValue
-                ? categoryService.GetById(Quiz.CategoryId.Value)
-                : null;
 
-            var quiz = await quizService.GetQuizAsync(
+            var quizObj = await quizService.GetQuizAsync(
                 (short)Quiz.Amount,
-                category,
+                Quiz.CategoryId.HasValue ? categoryService.GetById(Quiz.CategoryId.Value) : null,
                 Quiz.Difficulty,
                 Quiz.Type
             );
 
-            HttpContext.Session.SetString(
-                "CurrentQuiz",
-                JsonConvert.SerializeObject(quiz)
-            );
+            var userId = HttpContext.GetOrCreateUserId();
 
-            HttpContext.Session.SetInt32("CurrentQuestionIndex", 0);
+            var session = await db.QuizSessions
+                .FirstOrDefaultAsync(s => s.UserId == userId);
+
+            if (session == null)
+            {
+                session = new QuizSession { UserId = userId };
+                db.QuizSessions.Add(session);
+            }
+
+            session.QuizJson = JsonConvert.SerializeObject(quizObj);
+            session.ResultsJson = JsonConvert.SerializeObject(new List<QuestionResult>());
+            session.CurrentQuestionIndex = 0;
+            await db.SaveChangesAsync();
 
             return RedirectToPage("QuizGame");
         }
@@ -65,7 +71,6 @@ namespace QuizWebApp.Pages
         private async Task LoadDataAsync()
         {
             await categoryService.InitializeAsync();
-
             Categories = categoryService.GetAll()
                 .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
                 .ToList();

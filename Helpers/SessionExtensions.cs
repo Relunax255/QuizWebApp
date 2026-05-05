@@ -15,4 +15,19 @@
             return userId;
         }
     }
+    public static class HttpContextExtensions
+    {
+        public static string GetOrCreateUserId(this HttpContext httpContext)
+        {
+            const string key = "UserId";
+
+            if (!httpContext.Session.TryGetValue(key, out _))
+            {
+                var id = Guid.NewGuid().ToString();
+                httpContext.Session.SetString(key, id);
+            }
+
+            return httpContext.Session.GetString(key);
+        }
+    }
 }

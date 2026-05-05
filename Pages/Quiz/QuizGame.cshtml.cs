@@ -1,83 +1,72 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using QuizWebApp.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-
+using QuizWebApp.Models;
+using QuizWebApp.Helpers;
 namespace QuizWebApp.Pages
 {
     public class QuizGameModel : PageModel
     {
-        private const string IndexKey = "CurrentQuestionIndex";
-        public Models.Quiz Quiz { get; set; }
-        public Question CurrentQuestion { get; set; }
+        private readonly QuizDbContext db;
+        public QuizGameModel(QuizDbContext db) => this.db = db;
 
+        public Models.Quiz QuizObj { get; set; }
+        public Question CurrentQuestion { get; set; }
         public int Index { get; set; }
-        public int IndexDisplay => Index + 1;
+        public int CurrentNumber => Index + 1;
+        public int TotalQuestions => QuizObj?.Questions.Count ?? 0;
 
         [BindProperty]
         public int SelectedAnswerId { get; set; }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
-            return Load();
+            var session = await GetSessionAsync();
+            if (session == null) return RedirectToPage("QuizStart");
+
+            LoadQuiz(session);
+            return Page();
         }
 
-        public int TotalQuestions => Quiz?.Questions?.Count ?? 0;
-        public int CurrentNumber => Index + 1;
-
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
-            var loadResult = Load();
-            if (loadResult != null)
-                return loadResult;
+            var session = await GetSessionAsync();
+            if (session == null) return RedirectToPage("QuizStart");
 
-            var resultsJson = HttpContext.Session.GetString("QuizResults");
-            var results = resultsJson == null
-                ? new List<QuestionResult>()
-                : JsonConvert.DeserializeObject<List<QuestionResult>>(resultsJson);
+            LoadQuiz(session);
 
-            var selectedAnswer = CurrentQuestion.Answers
-                .FirstOrDefault(a => a.AnswerId == SelectedAnswerId);
+            var results = JsonConvert.DeserializeObject<List<QuestionResult>>(session.ResultsJson);
 
-            bool isCorrect = selectedAnswer?.IsCorrect == true;
-
-            // store result per question
             results.Add(new QuestionResult
             {
                 QuestionId = CurrentQuestion.QuestionId,
                 SelectedAnswerId = SelectedAnswerId,
-                IsCorrect = isCorrect
+                IsCorrect = CurrentQuestion.Answers.First(a => a.AnswerId == SelectedAnswerId).IsCorrect
             });
 
-            HttpContext.Session.SetString("QuizResults", JsonConvert.SerializeObject(results));
+            session.ResultsJson = JsonConvert.SerializeObject(results);
+            session.CurrentQuestionIndex++;
+            await db.SaveChangesAsync();
 
-            // advance
-            Index++;
-            HttpContext.Session.SetInt32(IndexKey, Index);
-
-            if (Index >= Quiz.Questions.Count)
-            {
+            if (session.CurrentQuestionIndex >= QuizObj.Questions.Count)
                 return RedirectToPage("Result");
-            }
 
             return RedirectToPage();
         }
 
-        private IActionResult Load()
+        private async Task<QuizSession> GetSessionAsync()
         {
-            var json = HttpContext.Session.GetString("CurrentQuiz");
+            var userId = HttpContext.GetOrCreateUserId();
+            return await db.QuizSessions.FirstOrDefaultAsync(s => s.UserId == userId);
+        }
 
-            if (json == null)
-                return RedirectToPage("Index");
-
-            Quiz = JsonConvert.DeserializeObject<Models.Quiz>(json);
-
-            Index = HttpContext.Session.GetInt32("CurrentQuestionIndex") ?? 0;
-
-            if (Index < Quiz.Questions.Count)
-                CurrentQuestion = Quiz.Questions[Index];
-
-            return null;
+        private void LoadQuiz(QuizSession session)
+        {
+            QuizObj = JsonConvert.DeserializeObject<Models.Quiz>(session.QuizJson);
+            Index = session.CurrentQuestionIndex;
+            if (Index < QuizObj.Questions.Count)
+                CurrentQuestion = QuizObj.Questions[Index];
         }
     }
 }
