@@ -6,7 +6,6 @@ public class QuizDbContext : DbContext
     public QuizDbContext(DbContextOptions options) : base(options) { }
 
     public DbSet<Category> Categories { get; set; }
-
     public DbSet<CompletedQuiz> CompletedQuizzes { get; set; }
     public DbSet<CompletedQuestion> CompletedQuestions { get; set; }
     public DbSet<CompletedAnswer> CompletedAnswers { get; set; }
@@ -27,6 +26,12 @@ public class QuizDbContext : DbContext
             .WithOne(a => a.CompletedQuestion)
             .HasForeignKey(a => a.CompletedQuestionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Category>()
+            .HasMany(c => c.CompletedQuestions)
+            .WithOne(q => q.Category)
+            .HasForeignKey(q => q.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<QuizSession>()
             .Property(q => q.QuizJson)

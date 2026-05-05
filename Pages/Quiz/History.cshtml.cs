@@ -28,6 +28,10 @@ namespace QuizWebApp.Pages
                 .OrderByDescending(q => q.Date)
                 .ToListAsync();
         }
+        public string GetCategoryName(CompletedQuiz quiz)
+        {
+            return quiz.Questions.All(x => x.Category == quiz.Questions.First().Category) ? quiz.Questions[0].Category.Name : "Mixed";
+        }
 
         public int GetScore(CompletedQuiz quiz)
         {

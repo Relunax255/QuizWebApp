@@ -10,5 +10,8 @@
         public string QuestionText { get; set; }
 
         public List<CompletedAnswer> Answers { get; set; } = new();
+
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
     }
 }

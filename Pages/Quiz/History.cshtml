@@ -22,9 +22,13 @@
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between">
-                        <h5>
+                        <h4>
+                            @Model.GetCategoryName(quiz)
+                        </h4>
+                        <br />
+                        <h3>
                             Score: @score / @total
-                        </h5>
+                        </h3>
 
                         <small class="text-muted">
                             @quiz.Date.ToLocalTime().ToString("g")

@@ -49,6 +49,7 @@ namespace QuizWebApp.Pages
                 UserId = userId,
                 Questions = Results.Select(r => new CompletedQuestion
                 {
+                    Category = r.Question.Category,
                     QuestionText = r.Question.QuestionText,
                     Answers = r.Question.Answers.Select(a => new CompletedAnswer
                     {
@@ -56,7 +57,7 @@ namespace QuizWebApp.Pages
                         IsCorrect = a.IsCorrect,
                         IsSelected = a.AnswerId == r.SelectedAnswer.AnswerId
                     }).ToList()
-                }).ToList()
+                }).ToList(),
             };
 
             db.CompletedQuizzes.Add(completedQuiz);

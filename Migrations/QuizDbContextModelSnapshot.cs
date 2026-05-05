@@ -99,6 +99,9 @@ namespace QuizWebApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
                     b.Property<int>("CompletedQuizId")
                         .HasColumnType("int");
 
@@ -107,6 +110,8 @@ namespace QuizWebApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("CompletedQuizId");
 
@@ -215,11 +220,19 @@ namespace QuizWebApp.Migrations
 
             modelBuilder.Entity("QuizWebApp.Models.CompletedQuestion", b =>
                 {
+                    b.HasOne("QuizWebApp.Models.Category", "Category")
+                        .WithMany("CompletedQuestions")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("QuizWebApp.Models.CompletedQuiz", "CompletedQuiz")
                         .WithMany("Questions")
                         .HasForeignKey("CompletedQuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("CompletedQuiz");
                 });
@@ -237,6 +250,8 @@ namespace QuizWebApp.Migrations
 
             modelBuilder.Entity("QuizWebApp.Models.Category", b =>
                 {
+                    b.Navigation("CompletedQuestions");
+
                     b.Navigation("Questions");
                 });
 
